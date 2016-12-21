@@ -1,15 +1,24 @@
 package cl.ucn.disc.isof.fivet.domain.service.ebean;
 
+import cl.ucn.disc.isof.fivet.domain.model.Control;
 import cl.ucn.disc.isof.fivet.domain.model.Paciente;
 import cl.ucn.disc.isof.fivet.domain.model.Persona;
 import cl.ucn.disc.isof.fivet.domain.service.BackendService;
+import com.avaje.ebean.Ebean;
 import com.avaje.ebean.EbeanServer;
 import com.avaje.ebean.EbeanServerFactory;
+import com.avaje.ebean.Expr;
 import com.avaje.ebean.config.EncryptKey;
 import com.avaje.ebean.config.EncryptKeyManager;
 import com.avaje.ebean.config.ServerConfig;
 import com.durrutia.ebean.BaseModel;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.constraints.Email;
+import org.intellij.lang.annotations.Flow;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.*;
+import java.lang.*;
 
 @Slf4j
 public class EbeanBackendService implements BackendService {
@@ -42,6 +51,7 @@ public class EbeanBackendService implements BackendService {
 
         config.addClass(Persona.class);
         config.addClass(Persona.Tipo.class);
+        config.addClass(Control.class);
 
         config.addClass(Paciente.class);
         config.addClass(Paciente.Sexo.class);
@@ -75,16 +85,115 @@ public class EbeanBackendService implements BackendService {
 
 
     /**
-     * @param rut
+     * @param rutEmail
      * @return the Persona
      */
     @Override
-    public Persona getPersona(String rut) {
-        return this.ebeanServer.find(Persona.class)
-                .where()
-                .eq("rut", rut)
+    public Persona getPersona(String rutEmail) {
+
+        Persona p=
+             this.ebeanServer.find(Persona.class)
+                .where().or(
+                        Expr.eq("rut", rutEmail),
+                        Expr.eq("email", rutEmail))
                 .findUnique();
+        return p;
     }
+
+    /**
+     * Obtiene el listado de los pacientes.
+     *
+     * @return the {@link List} of {@link Paciente}
+     */
+    @Override
+    public List<Paciente> getPacientes() {
+    List<Paciente> lp=
+        this.ebeanServer.find(Paciente.class)
+                .findList();
+        return lp;
+    }
+
+    /**
+     * Obtiene un {@link Paciente} a partir de su numero de ficha.
+     *
+     * @param numeroPaciente de ficha.
+     * @return the {@link Paciente}.
+     */
+    @Override
+    public Paciente getPaciente(Integer numeroPaciente) {
+
+    Paciente p=
+             this.ebeanServer.find(Paciente.class)
+                .where()
+                .eq("numero",numeroPaciente)
+                .findUnique();
+        return p;
+    }
+
+    /**
+     * Obtiene todos los controles realizados por un veterinario ordenado por fecha de control.
+     *
+     * @param rutVeterinario del que realizo el control.
+     * @return the {@link List} of {@link Control}.
+     */
+    @Override
+    public List<Control> getControlesVeterinario(String rutVeterinario) {
+        List<Control> c=
+         this.ebeanServer.find(Control.class)
+                .where()
+                .eq("veterinario.rut",rutVeterinario)
+                .setOrderBy("fecha")
+                .findList();
+        return c;
+    }
+
+    /**
+     * Obtiene todos los {@link Paciente} que poseen un match en su nombre.
+     *
+     * @param nombre a buscar, ejemplo: "pep" que puede retornar pepe, pepa, pepilla, etc..
+     * @return the {@link List} of {@link Paciente}.
+     */
+    @Override
+    public List<Paciente> getPacientesPorNombre(String nombre) {
+        List<Paciente> p=
+             this.ebeanServer.find(Paciente.class)
+                .where()
+                .ilike("nombre", nombre+"%")
+                .findList();
+        return p;
+
+    }
+
+    /**
+     * Agrega un {@link Control} a un {@link Paciente} identificado por el numeroPaciente.
+     *
+     * @param control        a agregar al paciente.
+     * @param numeroPaciente a asociar.
+     * @throws RuntimeException en caso de no encontrar al paciente.
+     */
+    @Override
+    public void agregarControl(Control control, Integer numeroPaciente) {
+        Paciente p =
+                Ebean.find(Paciente.class)
+                        .where()
+                        .eq("Paciente.numero", numeroPaciente)
+                        .findUnique();
+
+        try {
+            List<Control> c = Collections.emptyList();
+            c.add(control);
+            Ebean.save(control);
+            p.setControl(c);
+
+
+        } catch (RuntimeException r) {
+            System.out.println("No se econtro el paciente");
+        }
+    }
+
+
+
+
 
     /**
      * Inicializa la base de datos
