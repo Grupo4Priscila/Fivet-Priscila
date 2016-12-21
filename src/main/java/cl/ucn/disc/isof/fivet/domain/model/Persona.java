@@ -69,6 +69,10 @@ public class Persona extends BaseModel {
     @OrderBy("numero")
     private List<Paciente> pacientes;
 
+    public void agregarMascota(Paciente p){
+        this.pacientes.add(p);
+    }
+
     /**
      * Tipo de rol
      */

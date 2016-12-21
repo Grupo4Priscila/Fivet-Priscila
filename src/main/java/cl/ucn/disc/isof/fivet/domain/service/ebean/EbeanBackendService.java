@@ -138,13 +138,12 @@ public class EbeanBackendService implements BackendService {
      */
     @Override
     public List<Control> getControlesVeterinario(String rutVeterinario) {
-        List<Control> c=
-         this.ebeanServer.find(Control.class)
+        return this.ebeanServer.find(Control.class)
                 .where()
                 .eq("veterinario.rut",rutVeterinario)
-                .setOrderBy("fecha")
+                .orderBy("fecha")
                 .findList();
-        return c;
+
     }
 
     /**
@@ -176,15 +175,12 @@ public class EbeanBackendService implements BackendService {
         Paciente p =
                 Ebean.find(Paciente.class)
                         .where()
-                        .eq("Paciente.numero", numeroPaciente)
+                        .eq("numero", numeroPaciente)
                         .findUnique();
 
         try {
-            List<Control> c = Collections.emptyList();
-            c.add(control);
-            Ebean.save(control);
-            p.setControl(c);
-
+            p.agregaControl(control);
+            p.update();
 
         } catch (RuntimeException r) {
             System.out.println("No se econtro el paciente");

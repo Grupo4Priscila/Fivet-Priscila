@@ -1,12 +1,12 @@
 package cl.ucn.disc.isof.fivet.domain.model;
 
+import  org.hibernate.validator.constraints.NotEmpty;
 import com.avaje.ebean.annotation.EnumValue;
+import com.avaje.ebean.annotation.Encrypted;
 import com.durrutia.ebean.BaseModel;
 import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
 
@@ -70,7 +70,12 @@ public class Paciente extends BaseModel {
      */
     @Getter
     @Setter
-    private List<Control> control;
+    @ManyToMany
+    private List<Control> controls;
+
+    public void agregaControl(Control c){
+        this.controls.add(c);
+    }
 
     /**
      * Sexo?
@@ -85,5 +90,6 @@ public class Paciente extends BaseModel {
         @EnumValue("Indeterminado")
         INDETERMINADO,
     }
+
 
 }

@@ -172,7 +172,7 @@ public class TestEbeanBackendService {
         {
             final Paciente p1 = Paciente.builder()
                     .nombre("paciente1")
-                    .numero(1)
+                    .numero(3)
                     .sexo(Paciente.Sexo.MACHO)
                     .raza("Poodle")
                     .color("blanco")
@@ -185,7 +185,7 @@ public class TestEbeanBackendService {
 
             final Paciente p2 = Paciente.builder()
                     .nombre("paciente2")
-                    .numero(2)
+                    .numero(4)
                     .sexo(Paciente.Sexo.MACHO)
                     .raza("Poodle")
                     .color("azul")
@@ -196,8 +196,8 @@ public class TestEbeanBackendService {
             log.debug("Paciente to insert: {}", p2);
             Assert.assertNotNull("Objeto sin id", p2.getNumero());
         }
-        //PAciente con el numero 1
-        final Paciente paciente = backendService.getPaciente(1);
+        //PAciente con el numero 3
+        final Paciente paciente = backendService.getPaciente(3);
         log.debug("Pacientes founded: {}", paciente);
         Assert.assertNotNull("Can't find Paciente", paciente);
         Assert.assertNotNull("Objeto sin id", paciente.getNumero());
@@ -211,48 +211,60 @@ public class TestEbeanBackendService {
     }
     @Test
     public void testListaGetControlesPorVeterinarioRut(){
+
+        String rut ="2-2";
         //Insertar un veterinario
         final Persona p1=Persona.builder()
                 .nombre("Vet1")
-                .rut("1-1")
+                .rut(rut)
                 .email("a@a")
                 .password("qwerty")
                 .tipo(Persona.Tipo.VETERINARIO)
                 .build();
         p1.insert();
 
-
         //Insertar 2 controles
         {
             final Control c1 = Control.builder()
-                    .numero(1)
-                    .altura(123)
+                    .numero(1234)
                     .diagnostico("Cojo")
-                    .fecha(Date.from(Instant.EPOCH))
-                    .temperatura(25)
+                    .fecha(Date.from(Instant.now()))
+                    .proximoControl(Date.from(Instant.EPOCH))
                     .veterinario(p1)
                     .build();
-            Ebean.save(c1);
-            //c1.insert();
+            c1.insert();
 
             log.debug("Control to insert: {}", c1);
             Assert.assertNotNull("Objeto sin id", c1.getNumero());
+
             final Control c2 = Control.builder()
-                    .numero(2)
-                    .altura(123)
+                    .numero(12)
                     .diagnostico("Ciego")
                     .fecha(Date.from(Instant.EPOCH))
-                    .temperatura(18)
+                    .proximoControl(Date.from(Instant.EPOCH))
                     .veterinario(p1)
                     .build();
-            Ebean.save(c2);
-            //c1.insert();
+
+            c2.insert();
 
             log.debug("Control to insert: {}", c2);
             Assert.assertNotNull("Objeto sin id", c2.getNumero());
 
-        }
 
+            //Encontro 2 controles con 1 veterinario
+            List<Control> listaControl = backendService.getControlesVeterinario(rut);
+            Assert.assertTrue("No es una lista vacia",listaControl!=null);
+            Assert.assertTrue("Lista con 2 pacientes",listaControl.size()==2);
+
+
+            //El veterinario no esta asociado a los controles
+            List<Control> listaControl1 = backendService.getControlesVeterinario("6776");
+            Assert.assertTrue("No es una lista vacia",listaControl1!=null);
+            Assert.assertTrue("Lista con 2 pacientes",listaControl1.size()==0);
+
+
+
+        }
 
 
 
@@ -264,15 +276,15 @@ public class TestEbeanBackendService {
         //Insertar 3 pacientes 2 con nombre pep&
         {
             final Paciente p1=Paciente.builder()
-                    .numero(1)
+                    .numero(7)
                     .nombre("pepinillo")
                     .build();
             final Paciente p2=Paciente.builder()
-                    .numero(2)
+                    .numero(8)
                     .nombre("peponazo")
                     .build();
             final Paciente p3=Paciente.builder()
-                    .numero(3)
+                    .numero(9)
                     .nombre("perilla")
                     .build();
 
@@ -294,9 +306,56 @@ public class TestEbeanBackendService {
     }
     @Test
     public void testInsertarControl(){
+        String rut ="9-9";
+        //Insertar un veterinario
+        final Persona p1=Persona.builder()
+                .nombre("Vet1")
+                .rut(rut)
+                .email("a@a")
+                .password("qwerty")
+                .tipo(Persona.Tipo.VETERINARIO)
+                .build();
+        p1.insert();
+        int numero=9987;
+        //Agrego un paciente
+        final Paciente p = Paciente.builder()
+                .nombre("copito")
+                .numero(numero)
+                .sexo(Paciente.Sexo.MACHO)
+                .raza("Poodle")
+                .color("blanco")
+                .build();
+
+        p.insert();
+
+        //Crear un control
+        final Control c1 = Control.builder()
+                .numero(123456)
+                .diagnostico("Sigue Cojo")
+                .fecha(Date.from(Instant.now()))
+                .proximoControl(Date.from(Instant.EPOCH))
+                .veterinario(p1)
+                .build();
+        c1.insert();
+
+        backendService.agregarControl(c1,numero);
+
+        //Se agrego el control al paciente
+        Assert.assertNotNull("La lista de controles tiene al menos 1 control", p.getControls().size()==1);
+
 
 
     }
 
+
+    //Para correr el test completo se debe comentar la linea 164.
+    @Test
+    public void pruebaTotal(){
+        this.testGetPacientePorNombre();
+        this.testGetPacientePorNumero();
+        this.testListaGetControlesPorVeterinarioRut();
+        this.testPersona();
+        this.testListaGetPaciente();
+    }
 
 }
