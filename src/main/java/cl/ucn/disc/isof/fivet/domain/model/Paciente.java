@@ -8,6 +8,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Clase que representa a un Paciente de la veterinaria.
@@ -64,6 +65,12 @@ public class Paciente extends BaseModel {
     @Getter
     @Setter
     private String color;
+    /**
+     * Lista de  Controles
+     */
+    @Getter
+    @Setter
+    private List<Control> control;
 
     /**
      * Sexo?

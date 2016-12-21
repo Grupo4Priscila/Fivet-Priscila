@@ -39,6 +39,13 @@ public class Persona extends BaseModel {
     private String nombre;
 
     /**
+     * Email
+     */
+    @Getter
+    @Setter
+    @Column
+    private String email;
+    /**
      * Password
      */
     @NotEmpty
