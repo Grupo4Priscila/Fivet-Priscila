@@ -26,7 +26,8 @@ import java.util.Date;
 @Builder
 @Entity
 @Table
-public class Control {
+public class Control extends BaseModel {
+
     /**
      * Numero de la ficha
      */
@@ -92,6 +93,8 @@ public class Control {
          * Veterinario
          */
         @Getter
+        @Column(nullable = false)
+        @ManyToOne
         private Persona veterinario;
 
 
